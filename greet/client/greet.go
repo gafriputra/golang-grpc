@@ -42,3 +42,28 @@ func doGreetManyTimes(c pb.GreetServiceClient) {
 	}
 
 }
+
+func doLongGreet(c pb.GreetServiceClient) {
+	reqs := []*pb.GreetRequest{
+		{FirstName: "Gafri"},
+		{FirstName: "Putra"},
+		{FirstName: "Aliffansah"},
+	}
+
+	stream, err := c.LongGreet(context.Background())
+
+	if err != nil {
+		log.Fatalf("Error while calling long_greet: %v", err)
+	}
+
+	for _, req := range reqs {
+		stream.Send(req)
+	}
+
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("Error while receiving response from long greet: %v", err)
+	}
+
+	log.Printf("LongGreet : %s\n", res.Result)
+}
