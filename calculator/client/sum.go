@@ -43,3 +43,25 @@ func doPrimes(c pb.CalculatorServiceClient) {
 	}
 
 }
+
+func doAvg(c pb.CalculatorServiceClient) {
+	stream, err := c.Avg(context.Background())
+	if err != nil {
+		log.Fatalf("error while oppening avg: %v", err)
+	}
+
+	numbers := []float32{3.0, 1.0, 3.12, 3.19}
+
+	for _, number := range numbers {
+		stream.Send((&pb.AvgRequest{
+			Number: number,
+		}))
+	}
+
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("error while receive result: %v", err)
+	}
+
+	log.Printf("result received : %v", res.Result)
+}

@@ -19,6 +19,7 @@ func main() {
 	log.Printf("listening on %v", addr)
 	defer conn.Close()
 	c := pb.NewCalculatorServiceClient(conn)
-	doSum(c)
-	doPrimes(c)
+	// doSum(c)
+	// doPrimes(c)
+	doAvg(c)
 }
