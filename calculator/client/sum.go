@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"time"
 
 	pb "github.com/gafriputra/grpc-udemy/calculator/proto"
 )
@@ -64,4 +65,45 @@ func doAvg(c pb.CalculatorServiceClient) {
 	}
 
 	log.Printf("result received : %v", res.Result)
+}
+
+func doMax(c pb.CalculatorServiceClient) {
+	stream, err := c.Max(context.Background())
+	if err != nil {
+		log.Fatalf("error while oppening max: %v", err)
+	}
+
+	waitc := make(chan struct{})
+
+	go func() {
+		numbers := []int32{4, 3, 5, 12, 32, 414, 55, 2}
+		for _, number := range numbers {
+			log.Printf("sending number %d\n", number)
+			stream.Send(&pb.MaxRequest{
+				Number: number,
+			})
+			time.Sleep(1 * time.Second)
+		}
+
+		stream.CloseSend()
+	}()
+
+	go func() {
+		for {
+			res, err := stream.Recv()
+
+			if err == io.EOF {
+				break
+			}
+
+			if err != nil {
+				log.Fatalf("error while reading response: %v", err)
+				break
+			}
+
+			log.Printf("Received a new maximum : %v\n", res.Result)
+		}
+		close(waitc)
+	}()
+	<-waitc
 }
