@@ -19,6 +19,7 @@ func main() {
 	log.Printf("listening on %v", addr)
 	defer conn.Close()
 	c := pb.NewGreetServiceClient(conn)
-	doGreet(c)
+	// doGreet(c)
+	doGreetManyTimes(c)
 
 }
