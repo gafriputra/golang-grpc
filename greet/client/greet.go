@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"time"
 
 	pb "github.com/gafriputra/grpc-udemy/greet/proto"
 )
@@ -66,4 +67,48 @@ func doLongGreet(c pb.GreetServiceClient) {
 	}
 
 	log.Printf("LongGreet : %s\n", res.Result)
+}
+
+func doGreetEveryone(c pb.GreetServiceClient) {
+	stream, err := c.GreetEveryone(context.Background())
+	if err != nil {
+		log.Fatalf("error while creating stream: %v", err)
+	}
+
+	reqs := []*pb.GreetRequest{
+		{FirstName: "Gafri"},
+		{FirstName: "Putra"},
+		{FirstName: "Aliffansah"},
+	}
+
+	waitc := make(chan struct{})
+
+	go func() {
+		for _, req := range reqs {
+			log.Printf("Send request: %v", req)
+			stream.Send(req)
+			time.Sleep(1 * time.Second)
+		}
+		stream.CloseSend()
+	}()
+
+	go func() {
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+
+			if err != nil {
+				log.Fatalf("error while receiving response: %v", err)
+				break
+			}
+
+			log.Printf("Received: %v\n", res.Result)
+		}
+
+		close(waitc)
+	}()
+
+	<-waitc
 }
