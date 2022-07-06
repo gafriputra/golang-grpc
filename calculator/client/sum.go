@@ -7,6 +7,8 @@ import (
 	"time"
 
 	pb "github.com/gafriputra/grpc-udemy/calculator/proto"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func doSum(c pb.CalculatorServiceClient) {
@@ -106,4 +108,28 @@ func doMax(c pb.CalculatorServiceClient) {
 		close(waitc)
 	}()
 	<-waitc
+}
+
+func doSqrt(c pb.CalculatorServiceClient, n int32) {
+	res, err := c.Sqrt(context.Background(), &pb.SqrtRequest{
+		Number: n,
+	})
+
+	if err != nil {
+		err, ok := status.FromError(err)
+
+		if ok {
+			log.Printf("error message from server: %v", err.Message())
+			log.Printf("error code from server: %v", err.Code())
+
+			if err.Code() == codes.InvalidArgument {
+				log.Printf("We probably send a negative number")
+				return
+			}
+		} else {
+			log.Fatalf("A non gRPC error: %v\n", err)
+		}
+	}
+
+	log.Printf("Sqrt %f\n", res.Result)
 }
